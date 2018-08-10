@@ -21,6 +21,8 @@ class Config(object):
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     ADMINS = ['your-email@example.com']
 
+    REDIS_URL = os.environ.get('REDIS_URL') or 'redis://'
+
     LANGUAGES = ['en']
 
     POSTS_PER_PAGE = 3

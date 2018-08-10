@@ -16,7 +16,10 @@ from flask_babel import Babel
 from flask_babel import  lazy_gettext as _l
 
 
-from flask import request
+from flask import request, current_app
+
+from redis import Redis
+import rq
 
 
 db = SQLAlchemy()
@@ -36,7 +39,7 @@ from app import models
 
 def create_app(config_class=Config):
     app = Flask(__name__)
-    app.config.from_object(Config)
+    app.config.from_object(config_class)
 
 
     db.init_app(app)
@@ -57,6 +60,12 @@ def create_app(config_class=Config):
 
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
+
+    from app.api import bp as api_bp
+    app.register_blueprint(api_bp, url_prefix='/api')
+
+    app.redis = Redis.from_url(app.config['REDIS_URL'])
+    app.task_queue = rq.Queue('microblog-tasks', connection=app.redis)
 
 
 
@@ -92,5 +101,5 @@ def create_app(config_class=Config):
 
 @babel.localeselector
 def get_locale():
-    return request.accept_languages.best_match(app.config['LANGUAGES'])
+    return request.accept_languages.best_match(current_app.config['LANGUAGES'])
 
